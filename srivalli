@@ -1,0 +1,104 @@
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
+import java.text.NumberFormat;
+
+public class TipCalculatorApp extends Application {
+
+    // Define currency format for easier local output styling
+    private static final NumberFormat currency = NumberFormat.getCurrencyInstance();
+
+    @Override
+    public void start(Stage primaryStage) {
+        primaryStage.setTitle("Tip Calculator");
+
+        // 1. Initialize Layout Pane
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(12);
+        grid.setVgap(12);
+        grid.setPadding(new Insets(20, 20, 20, 20));
+
+        // 2. Instantiate JavaFX Components
+        Label amountLabel = new Label("Amount:");
+        TextField amountTextField = new TextField();
+        amountTextField.setPromptText("Enter bill total");
+
+        // Dynamic label that changes as the slider moves
+        Label percentageLabel = new Label("Tip percentage (15%):");
+        Slider tipSlider = new Slider(0, 30, 15); // Min: 0%, Max: 30%, Default: 15%
+        tipSlider.setShowTickMarks(true);
+        tipSlider.setShowTickLabels(false);
+
+        Label tipLabel = new Label("Tip:");
+        TextField tipTextField = new TextField();
+        tipTextField.setEditable(false); // Make read-only
+
+        Label totalLabel = new Label("Total:");
+        TextField totalTextField = new TextField();
+        totalTextField.setEditable(false); // Make read-only
+
+        Button calculateButton = new Button("Calculate");
+
+        // 3. Arrange Components inside the GridPane Layout
+        grid.add(amountLabel, 0, 0);
+        grid.add(amountTextField, 1, 0);
+
+        grid.add(percentageLabel, 0, 1);
+        grid.add(tipSlider, 1, 1);
+
+        grid.add(tipLabel, 0, 2);
+        grid.add(tipTextField, 1, 2);
+
+        grid.add(totalLabel, 0, 3);
+        grid.add(totalTextField, 1, 3);
+
+        grid.add(calculateButton, 1, 4);
+
+        // 4. Implement Event Handling and Interactions
+
+        // Listener A: Update the percentage text label in real-time as the slider moves
+        tipSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            int percentage = newValue.intValue();
+            percentageLabel.setText(String.format("Tip percentage (%d%%):", percentage));
+        });
+
+        // Listener B: Handle the main calculation math on Button click
+        calculateButton.setOnAction(e -> {
+            try {
+                // Parse textual entry into numeric double value
+                double billAmount = Double.parseDouble(amountTextField.getText());
+                int tipPercent = (int) tipSlider.getValue();
+
+                // Math logic
+                double tipAmount = billAmount * (tipPercent / 100.0);
+                double absoluteTotal = billAmount + tipAmount;
+
+                // Format values into regional currency representations
+                tipTextField.setText(currency.format(tipAmount));
+                totalTextField.setText(currency.format(absoluteTotal));
+
+            } catch (NumberFormatException ex) {
+                // Alert if the user inputs alphabetical or invalid symbols
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Invalid Entry");
+                alert.setHeaderText("Parsing Error");
+                alert.setContentText("Please provide a valid numeric value for the bill amount.");
+                alert.showAndWait();
+            }
+        });
+
+        // 5. Final Stage Setup
+        Scene scene = new Scene(grid, 340, 250);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
